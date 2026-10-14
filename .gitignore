@@ -1,36 +1,40 @@
-# ==============================================================================
-# CampusOne Git Ignore Configuration
-# ==============================================================================
-
 # Dependencies
 node_modules/
-*/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json.bak
 
-# Environment Variables & Sensitive Credentials (NEVER COMMIT)
+# Local environment files and secrets
 .env
 .env.*
 *.env
-server/.env
-server/.env.*
-client/.env
-client/.env.*
 !*.env.example
 !**/*.env.example
 
-# Production Builds & Compiled Assets
+# Build output and generated files
 dist/
 dist-ssr/
-client/dist/
 build/
 out/
-*.local
+coverage/
+.nyc_output/
+*.lcov
+*.tsbuildinfo
+.vite/
+.cache/
+.turbo/
+.vercel/
 
-# IDE & Editor Configurations
+# Logs and temporary files
+logs/
+*.log
+*.pid
+*.seed
+scratch/
+.system_generated/
+
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
@@ -41,7 +45,7 @@ out/
 .classpath
 .settings/
 
-# OS-Generated Files
+# OS-generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -50,14 +54,3 @@ out/
 ehthumbs.db
 Thumbs.db
 [Dd]esktop.ini
-
-# Testing, Coverage & Scratch Directories
-coverage/
-.nyc_output/
-*.lcov
-scratch/
-.system_generated/
-
-# Logs & Runtime Artefacts
-logs/
-*.log
