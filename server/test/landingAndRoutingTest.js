@@ -98,17 +98,15 @@ runTest('ProtectedRoute component guards against unauthenticated access and load
   assert(guardContent.includes('allowedRoles.includes(role)'), 'Must check role membership');
 });
 
-// TEST 5: Registration safety prevents public assignment of teacher/admin roles
-runTest('RegisterPage strictly assigns student role and blocks privileged role assignment', () => {
+// TEST 5: Registration supports role-based account creation
+runTest('RegisterPage supports role-based account creation (student, teacher, admin)', () => {
   const regContent = fs.readFileSync(path.join(clientSrc, 'views/RegisterPage.jsx'), 'utf-8');
-  assert(
-    regContent.includes("role: 'student'"),
-    'Registration must strictly assign student role'
-  );
-  assert(
-    !regContent.includes('<select name="role"'),
-    'Registration form must not allow arbitrary role selection'
-  );
+  assert(regContent.includes('roleConfigs'), 'Registration must support role configurations');
+  assert(regContent.includes("selectedRole === 'teacher'"), 'Must handle teacher role selection');
+  assert(regContent.includes("selectedRole === 'admin'"), 'Must handle admin role selection');
+  assert(regContent.includes("navigate('/teacher')"), 'Must route teacher to /teacher');
+  assert(regContent.includes("navigate('/admin')"), 'Must route admin to /admin');
+  assert(regContent.includes("navigate('/dashboard')"), 'Must route student to /dashboard');
 });
 
 // TEST 6: Design system CSS defines the warm editorial palette

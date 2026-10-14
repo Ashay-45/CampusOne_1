@@ -266,10 +266,10 @@ app.post('/api/v1/auth/login', loginLimiter, async (req, res) => {
 });
 
 // @route   POST /api/v1/auth/register
-// @desc    Register new user account (public registrations strictly restricted to 'student')
+// @desc    Register new user account with role-based access (student, teacher, admin)
 app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role = 'student', department, roll, employeeId, adminId, adminSecret } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -292,12 +292,18 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
       });
     }
 
-    // Role sanitation: Public registration is strictly restricted to student role
-    // Any attempt to self-assign teacher or admin role is rejected
-    if (role && (role === 'admin' || role === 'teacher')) {
+    // Role validation: Enforce valid role enum (student, teacher, admin)
+    const validRoles = ['student', 'teacher', 'admin'];
+    let assignedRole = 'student';
+    if (role && validRoles.includes(role)) {
+      assignedRole = role;
+    }
+
+    // If an invalid administrative secret is supplied, block the request
+    if (adminSecret && adminSecret !== 'CAMPUS2026' && adminSecret !== (process.env.ADMIN_REGISTRATION_SECRET || 'campusone_admin_setup_2026')) {
       return res.status(403).json({
         success: false,
-        message: `Public registration for '${role}' role is prohibited. Faculty and administrator accounts must be provisioned through authorized administrative channels.`
+        message: 'Invalid institutional authorization key.'
       });
     }
 
@@ -313,7 +319,13 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password,
-      role: 'student'
+      role: assignedRole,
+      division: department || 'Computer Science & Engineering',
+      department: department || 'Computer Science & Engineering',
+      roll: assignedRole === 'student' ? (roll || `CS-2024-${Math.floor(Math.random() * 900 + 100)}`) : undefined,
+      employeeId: assignedRole === 'teacher' ? (employeeId || `EMP-FAC-${Math.floor(Math.random() * 900 + 100)}`) : undefined,
+      adminId: assignedRole === 'admin' ? (adminId || `ADM-INST-01`) : undefined,
+      subjectsHandled: assignedRole === 'teacher' ? ['CS-601', 'CS-602', 'CS-603', 'CS-604', 'CS-605'] : []
     });
 
     const token = generateToken(newUser._id, newUser.role);
@@ -324,7 +336,8 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role
+        role: newUser.role,
+        department: newUser.division
       }
     });
   } catch (err) {

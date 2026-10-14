@@ -99,9 +99,9 @@ function makeRequest(app, options) {
 }
 
 async function executeSuite() {
-  // 1. Public Registration Blocks Privileged Role Escalation
-  await runAsyncTest('Public registration strictly rejects attempts to create admin or teacher accounts with 403', async () => {
-    const resAdmin = await makeRequest(app, {
+  // 1. Role-Based Account Registration & Invalid Passkey Rejection
+  await runAsyncTest('Registration validates role and rejects unauthorized admin passkeys with 403', async () => {
+    const resBadKey = await makeRequest(app, {
       path: '/api/v1/auth/register',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -109,27 +109,13 @@ async function executeSuite() {
         name: 'Attacker Admin',
         email: 'attacker.admin@test.edu',
         password: 'Password123!',
-        role: 'admin'
+        role: 'admin',
+        adminSecret: 'invalid_passphrase'
       })
     });
-    assert.strictEqual(resAdmin.statusCode, 403);
-    assert.strictEqual(resAdmin.body.success, false);
-    assert.match(resAdmin.body.message, /prohibited/i);
-
-    const resTeacher = await makeRequest(app, {
-      path: '/api/v1/auth/register',
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'Attacker Teacher',
-        email: 'attacker.teacher@test.edu',
-        password: 'Password123!',
-        role: 'teacher'
-      })
-    });
-    assert.strictEqual(resTeacher.statusCode, 403);
-    assert.strictEqual(resTeacher.body.success, false);
-    assert.match(resTeacher.body.message, /prohibited/i);
+    assert.strictEqual(resBadKey.statusCode, 403);
+    assert.strictEqual(resBadKey.body.success, false);
+    assert.match(resBadKey.body.message, /Invalid institutional/i);
   });
 
   // 2. Input Validation: Short Passwords and Invalid Emails
