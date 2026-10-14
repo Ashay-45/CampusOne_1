@@ -1,10 +1,19 @@
 // CampusOne Centralized HTTP Client
 // Handles baseURL, JWT authorization headers, timeouts, and normalized error responses.
 
-const BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL)
-  ? import.meta.env.VITE_API_BASE_URL
-  : '/api/v1';
-const DEFAULT_TIMEOUT_MS = 8000;
+const getBaseUrl = () => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  // When running on Vercel or cloud deployment, directly target the live Render API
+  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('onrender.com'))) {
+    return 'https://campusone-1-j8ne.onrender.com/api/v1';
+  }
+  return '/api/v1';
+};
+
+const BASE_URL = getBaseUrl();
+const DEFAULT_TIMEOUT_MS = 12000;
 
 export class ApiError extends Error {
   constructor(message, status = 500, data = null) {

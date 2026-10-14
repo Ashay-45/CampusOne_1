@@ -51,7 +51,8 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser requests (e.g. curl, server-to-server, postman) where origin is undefined
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost(:\d+)?$/.test(origin))) {
+    const isVercelOrigin = /^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(origin);
+    if (allowedOrigins.includes(origin) || isVercelOrigin || (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost(:\d+)?$/.test(origin))) {
       return callback(null, true);
     }
     return callback(new Error(`CORS policy violation: Origin '${origin}' is not authorized.`));
