@@ -21,9 +21,9 @@ flowchart TD
 ### Topology Specification
 | Component | Hosting Provider | Staging URL / Hostname | Management Rationale |
 | :--- | :--- | :--- | :--- |
-| **Frontend SPA** | **Vercel** (or Render Static) | `https://staging-campusone.vercel.app` | Global edge caching, automatic HTTPS/SSL, zero-config SPA client routing (`/index.html`), instant Git preview deploys. Cost: Free tier. |
-| **Backend REST API** | **Render Web Service** | `https://api-staging-campusone.onrender.com` | Managed Node.js runtime, automatic TLS certificates, built-in health-check probe monitoring, auto-restart on crashes, native environment secret vault. Cost: Free / $7/mo Starter. |
-| **Database** | **MongoDB Atlas** | `mongodb+srv://...` | Managed 3-node replica set, automated point-in-time recovery, continuous daily snapshots, IP allowlisting, least-privilege database user. Cost: Free M0 tier. |
+| **Frontend SPA** | **Vercel** (or Render Static) | *(Deploying in next step)* | Global edge caching, automatic HTTPS/SSL, zero-config SPA client routing (`/index.html`), instant Git preview deploys. Cost: Free tier. |
+| **Backend REST API** | **Render Web Service** | `https://campusone-1-j8ne.onrender.com` | Managed Node.js runtime, automatic TLS certificates, built-in health-check probe monitoring, auto-restart on crashes, native environment secret vault. Cost: Free / $7/mo Starter. **(VERIFIED LIVE)** |
+| **Database** | **MongoDB Atlas** | `ac-7fzlncy-shard-00-00.rjdzrud.mongodb.net` | Managed 3-node replica set, automated point-in-time recovery, continuous daily snapshots, IP allowlisting, least-privilege database user. Cost: Free M0 tier. **(VERIFIED LIVE)** |
 
 ---
 
