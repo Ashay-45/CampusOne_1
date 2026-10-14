@@ -158,8 +158,23 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // -------------------------------------------------------------
-// Health, Liveness & Readiness Endpoints
+// Root Service & Health Endpoints
 // -------------------------------------------------------------
+// Root endpoint: Confirms API service is online for Render and monitoring probes
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'CampusOne Backend API',
+    status: 'online',
+    version: '1.0.0',
+    healthCheck: '/api/v1/health',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.head('/', (req, res) => {
+  res.status(200).end();
+});
+
 // Liveness probe: Confirms API server process is alive
 app.get('/api/v1/health', (req, res) => {
   const dbStatus = getDBStatus();
