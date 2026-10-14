@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Sparkles, ArrowRight, Lock, Mail, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { login, switchRole, isAuthenticated, role } = useAuth();
+  const { login, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -46,17 +46,10 @@ export const LoginPage = () => {
     }
   };
 
-  const handleQuickFill = (presetEmail, presetRole) => {
+  const handleQuickFill = (presetEmail) => {
     setEmail(presetEmail);
     setPassword('Campus@2024');
     setError('');
-  };
-
-  const handleDemoPersona = (targetRole) => {
-    switchRole(targetRole);
-    if (targetRole === 'teacher') navigate('/teacher');
-    else if (targetRole === 'admin') navigate('/admin');
-    else navigate('/dashboard');
   };
 
   return (
@@ -176,24 +169,6 @@ export const LoginPage = () => {
               style={{ fontSize: '0.75rem', padding: '6px 8px' }}
             >
               Admin
-            </button>
-          </div>
-
-          <div style={{ marginTop: '12px', textAlign: 'center' }}>
-            <button
-              type="button"
-              onClick={() => handleDemoPersona('student')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--ac)',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                fontWeight: 600,
-                textDecoration: 'underline'
-              }}
-            >
-              Enter via Offline Demo Persona (Preview Only)
             </button>
           </div>
         </div>

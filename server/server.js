@@ -298,18 +298,11 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
       });
     }
 
-    // Role validation: Enforce valid role enum (student, teacher, admin)
-    const validRoles = ['student', 'teacher', 'admin'];
-    let assignedRole = 'student';
-    if (role && validRoles.includes(role)) {
-      assignedRole = role;
-    }
-
-    // If an invalid administrative secret is supplied, block the request
-    if (adminSecret && adminSecret !== 'CAMPUS2026' && adminSecret !== (process.env.ADMIN_REGISTRATION_SECRET || 'campusone_admin_setup_2026')) {
+    // Strict Role Validation: Public registration cannot create teacher or administrator accounts
+    if (role && role !== 'student') {
       return res.status(403).json({
         success: false,
-        message: 'Invalid institutional authorization key.'
+        message: `Public registration for '${role}' role is prohibited. Teacher and administrator privileges must be granted through authorized server-side administrative processes.`
       });
     }
 
@@ -325,13 +318,10 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password,
-      role: assignedRole,
+      role: 'student',
       division: department || 'Computer Science & Engineering',
       department: department || 'Computer Science & Engineering',
-      roll: assignedRole === 'student' ? (roll || `CS-2024-${Math.floor(Math.random() * 900 + 100)}`) : undefined,
-      employeeId: assignedRole === 'teacher' ? (employeeId || `EMP-FAC-${Math.floor(Math.random() * 900 + 100)}`) : undefined,
-      adminId: assignedRole === 'admin' ? (adminId || `ADM-INST-01`) : undefined,
-      subjectsHandled: assignedRole === 'teacher' ? ['CS-601', 'CS-602', 'CS-603', 'CS-604', 'CS-605'] : []
+      roll: roll || `CS-2024-${Math.floor(Math.random() * 900 + 100)}`
     });
 
     const token = generateToken(newUser._id, newUser.role);

@@ -98,14 +98,11 @@ runTest('ProtectedRoute component guards against unauthenticated access and load
   assert(guardContent.includes('allowedRoles.includes(role)'), 'Must check role membership');
 });
 
-// TEST 5: Registration supports role-based account creation
-runTest('RegisterPage supports role-based account creation (student, teacher, admin)', () => {
+// TEST 5: Registration enforces secure student account creation and institution policy notice
+runTest('RegisterPage enforces secure student account creation with institutional policy notice', () => {
   const regContent = fs.readFileSync(path.join(clientSrc, 'views/RegisterPage.jsx'), 'utf-8');
-  assert(regContent.includes('roleConfigs'), 'Registration must support role configurations');
-  assert(regContent.includes("selectedRole === 'teacher'"), 'Must handle teacher role selection');
-  assert(regContent.includes("selectedRole === 'admin'"), 'Must handle admin role selection');
-  assert(regContent.includes("navigate('/teacher')"), 'Must route teacher to /teacher');
-  assert(regContent.includes("navigate('/admin')"), 'Must route admin to /admin');
+  assert(regContent.includes("role: 'student'"), 'Registration must enforce student role creation');
+  assert(regContent.includes("Institutional Access Policy"), 'Must provide institutional access policy notice');
   assert(regContent.includes("navigate('/dashboard')"), 'Must route student to /dashboard');
 });
 

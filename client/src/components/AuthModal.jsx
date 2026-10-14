@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, LogIn, UserPlus, LogOut, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
+import { X, LogIn, UserPlus, LogOut, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose }) => {
-  const { user, login, register, logout, switchRole, isAuthenticated, isDemoMode } = useAuth();
+  const { user, login, register, logout, isAuthenticated } = useAuth();
   const [tab, setTab] = useState('login'); // 'login' | 'register'
-  const [role, setRole] = useState('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -23,7 +22,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
       if (tab === 'login') {
         await login(email, password);
       } else {
-        await register({ name, email, password, role });
+        await register({ name, email, password, role: 'student' });
       }
       onClose();
     } catch (err) {
@@ -31,11 +30,6 @@ export const AuthModal = ({ isOpen, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDemoSwitch = (targetRole) => {
-    switchRole(targetRole);
-    onClose();
   };
 
   return (
@@ -49,7 +43,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
             <p style={{ color: 'var(--mut)', fontSize: '0.85rem' }}>
               {isAuthenticated 
                 ? 'Authenticated with MongoDB & JWT' 
-                : 'Enter institutional credentials or preview demo persona'}
+                : 'Enter institutional credentials to continue'}
             </p>
           </div>
           <button className="icon-btn" onClick={onClose}><X size={18} /></button>
@@ -58,12 +52,12 @@ export const AuthModal = ({ isOpen, onClose }) => {
         {isAuthenticated ? (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--sf)', borderRadius: 'var(--radius-md)', border: '1px solid var(--bd)', marginBottom: '20px' }}>
-              <img src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} alt={user.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }} />
+              <img src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} alt={user?.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }} />
               <div>
-                <h3 style={{ fontSize: '1.1rem' }}>{user.name}</h3>
-                <div style={{ color: 'var(--mut)', fontSize: '0.85rem' }}>{user.email}</div>
+                <h3 style={{ fontSize: '1.1rem' }}>{user?.name}</h3>
+                <div style={{ color: 'var(--mut)', fontSize: '0.85rem' }}>{user?.email}</div>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                  <span className={`role-badge role-${user.role}`}>{user.role}</span>
+                  <span className={`role-badge role-${user?.role || 'student'}`}>{user?.role || 'student'}</span>
                   <span className="badge badge-ac"><ShieldCheck size={12} style={{ marginRight: '4px' }} /> Verified JWT</span>
                 </div>
               </div>
@@ -94,7 +88,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                 className={`btn btn-sm ${tab === 'register' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => { setTab('register'); setError(''); }}
               >
-                <UserPlus size={15} /> New Registration
+                <UserPlus size={15} /> Student Registration
               </button>
             </div>
 
@@ -144,29 +138,13 @@ export const AuthModal = ({ isOpen, onClose }) => {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
-              {loading ? 'Authenticating...' : tab === 'login' ? 'Sign In to CampusOne' : 'Register Account'}
+              {loading ? 'Authenticating...' : tab === 'login' ? 'Sign In to CampusOne' : 'Register Student Account'}
             </button>
-
-            <div style={{ marginTop: '20px', borderTop: '1px solid var(--bd)', paddingTop: '16px' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--mut)', textAlign: 'center', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <Sparkles size={13} style={{ color: 'var(--hi)' }} />
-                Or switch to visual demo persona:
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleDemoSwitch('student')}>
-                  Student
-                </button>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleDemoSwitch('teacher')}>
-                  Teacher
-                </button>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleDemoSwitch('admin')}>
-                  Admin
-                </button>
-              </div>
-            </div>
           </form>
         )}
       </div>
     </div>
   );
 };
+
+export default AuthModal;

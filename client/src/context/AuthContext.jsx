@@ -3,67 +3,13 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
-export const demoPersonas = {
-  student: {
-    id: 'demo_std_01',
-    name: 'Aarav Sharma',
-    firstName: 'Aarav',
-    lastName: 'Sharma',
-    email: 'aarav.sharma@campusone.edu',
-    role: 'student',
-    roll: 'CS-2023-042',
-    division: 'B.Tech CSE - 6th Sem',
-    department: 'Computer Science & Engineering',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    cgpa: 8.84,
-    attendanceRate: 88.5,
-    streak: 14,
-    ranking: 4
-  },
-  teacher: {
-    id: 'demo_tch_01',
-    name: 'Dr. Priya Raman',
-    firstName: 'Priya',
-    lastName: 'Raman',
-    email: 'priya.raman@campusone.edu',
-    role: 'teacher',
-    employeeId: 'EMP-FAC-889',
-    department: 'Computer Science & Engineering',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    subjectsHandled: ['Data Structures & Algorithms', 'Database Systems', 'Distributed Computing'],
-    totalClassesTaken: 142,
-    activeBatches: 3
-  },
-  admin: {
-    id: 'demo_adm_01',
-    name: 'Campus Administrator',
-    firstName: 'Admin',
-    lastName: 'Office',
-    email: 'admin@campusone.edu',
-    role: 'admin',
-    adminId: 'ADMIN-ROOT-01',
-    department: 'Academic Administration',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    systemStatus: 'Optimal (100%)',
-    totalUsers: 3420
-  }
-};
-
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('campusone_token') || null);
-  const [role, setRole] = useState(() => localStorage.getItem('campusone_active_role') || null);
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('campusone_user');
-    const savedToken = localStorage.getItem('campusone_token');
-    if (saved && savedToken) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return null;
-  });
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   
-  // Only show initial loading state if a token exists and needs backend hydration
+  // Loading state remains true until the session is hydrated & verified with the backend
   const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('campusone_token')));
-  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Hydrate session from backend on startup if token exists
   useEffect(() => {
@@ -79,19 +25,20 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await authAPI.getMe(storedToken);
         if (isMounted && res?.success && res.user) {
+          // Strictly trust only server-verified role and profile
           setUser(res.user);
           setRole(res.user.role);
-          setIsDemoMode(false);
           localStorage.setItem('campusone_user', JSON.stringify(res.user));
           localStorage.setItem('campusone_active_role', res.user.role);
+        } else {
+          throw new Error('Invalid user session');
         }
       } catch (err) {
-        console.warn('Session expired or server unavailable:', err.message);
+        console.warn('Session verification failed or server unavailable:', err.message);
         if (isMounted) {
           setToken(null);
           setUser(null);
           setRole(null);
-          setIsDemoMode(false);
           localStorage.removeItem('campusone_token');
           localStorage.removeItem('campusone_user');
           localStorage.removeItem('campusone_active_role');
@@ -110,30 +57,28 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Real backend login
+  // Backend login - role is derived exclusively from server response
   const login = async (email, password) => {
     const res = await authAPI.login(email, password);
-    if (res?.success && res.token) {
+    if (res?.success && res.token && res.user) {
       setToken(res.token);
       setUser(res.user);
       setRole(res.user.role);
-      setIsDemoMode(false);
       localStorage.setItem('campusone_token', res.token);
       localStorage.setItem('campusone_user', JSON.stringify(res.user));
       localStorage.setItem('campusone_active_role', res.user.role);
       return res;
     }
-    throw new Error(res?.message || 'Login failed');
+    throw new Error(res?.message || 'Authentication failed');
   };
 
-  // Real backend registration (public registration assigns student)
+  // Backend registration - public registration assigns student role exclusively
   const register = async (userData) => {
     const res = await authAPI.register(userData);
-    if (res?.success && res.token) {
+    if (res?.success && res.token && res.user) {
       setToken(res.token);
       setUser(res.user);
       setRole(res.user.role);
-      setIsDemoMode(false);
       localStorage.setItem('campusone_token', res.token);
       localStorage.setItem('campusone_user', JSON.stringify(res.user));
       localStorage.setItem('campusone_active_role', res.user.role);
@@ -145,30 +90,18 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authAPI.logout();
-    } catch (e) {}
+    } catch (e) {
+      // Best-effort logout notification
+    }
     setToken(null);
     setUser(null);
     setRole(null);
-    setIsDemoMode(false);
     localStorage.removeItem('campusone_token');
     localStorage.removeItem('campusone_user');
     localStorage.removeItem('campusone_active_role');
   };
 
-  // Explicit demo persona switch (UI ONLY preview)
-  const switchDemoPersona = (targetRole) => {
-    if (demoPersonas[targetRole]) {
-      setRole(targetRole);
-      setUser(demoPersonas[targetRole]);
-      setIsDemoMode(true);
-      setToken('demo_preview_token');
-      localStorage.setItem('campusone_token', 'demo_preview_token');
-      localStorage.setItem('campusone_active_role', targetRole);
-      localStorage.setItem('campusone_user', JSON.stringify(demoPersonas[targetRole]));
-    }
-  };
-
-  const isAuthenticated = Boolean((token && user) || isDemoMode);
+  const isAuthenticated = Boolean(token && user);
 
   return (
     <AuthContext.Provider
@@ -177,12 +110,10 @@ export const AuthProvider = ({ children }) => {
         role,
         token,
         loading,
-        isDemoMode,
         isAuthenticated,
         login,
         register,
-        logout,
-        switchRole: switchDemoPersona
+        logout
       }}
     >
       {children}
@@ -191,3 +122,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;

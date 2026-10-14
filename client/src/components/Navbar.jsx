@@ -14,14 +14,12 @@ import {
   FileText, 
   Bot, 
   Users, 
-  Shield, 
-  ChevronDown,
   Layers,
   Sparkles,
   LogOut
 } from 'lucide-react';
 
-export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModal }) => {
+export const Navbar = ({ activeTab, onSelectTab, onOpenAuthModal }) => {
   const { user, role, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -102,15 +100,14 @@ export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModa
 
         {/* Action Controls */}
         <div className="nav-actions">
-          {/* Quick Role Switcher Pill */}
-          <button 
+          {/* Verified Role Badge (Read-Only) */}
+          <span 
             className={`role-badge role-${role || 'student'}`}
-            onClick={onOpenRoleModal}
-            title="Switch User Role Preview"
+            title={`Active Verified Role: ${role || 'student'}`}
+            style={{ cursor: 'default' }}
           >
             <span>{role || 'student'}</span>
-            <ChevronDown size={14} />
-          </button>
+          </span>
 
           {/* Theme Toggle Button */}
           <button 

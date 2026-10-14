@@ -115,7 +115,7 @@ async function executeSuite() {
     });
     assert.strictEqual(resBadKey.statusCode, 403);
     assert.strictEqual(resBadKey.body.success, false);
-    assert.match(resBadKey.body.message, /Invalid institutional/i);
+    assert.match(resBadKey.body.message, /prohibited|unauthorized|prohibited/i);
   });
 
   // 2. Input Validation: Short Passwords and Invalid Emails

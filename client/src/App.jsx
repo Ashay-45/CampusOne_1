@@ -6,7 +6,6 @@ import { LandingPage } from './views/LandingPage';
 import { LoginPage } from './views/LoginPage';
 import { RegisterPage } from './views/RegisterPage';
 import { Navbar } from './components/Navbar';
-import { RoleSwitcherModal } from './components/RoleSwitcherModal';
 import { AuthModal } from './components/AuthModal';
 import { StudentDashboard } from './views/StudentDashboard';
 import { AcademicsView } from './views/AcademicsView';
@@ -24,7 +23,6 @@ import { AdminDashboard } from './views/AdminDashboard';
 function DashboardShell({ initialTab = 'dashboard' }) {
   const { role } = useAuth();
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Sync activeTab when initialTab or role prop changes
@@ -67,20 +65,12 @@ function DashboardShell({ initialTab = 'dashboard' }) {
       <Navbar
         activeTab={activeTab}
         onSelectTab={handleSelectTab}
-        onOpenRoleModal={() => setIsRoleModalOpen(true)}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
       />
 
       <main>
         {renderCurrentView()}
       </main>
-
-      {/* Role Switcher & Auth Modals */}
-      <RoleSwitcherModal
-        isOpen={isRoleModalOpen}
-        onClose={() => setIsRoleModalOpen(false)}
-        onSelectTab={handleSelectTab}
-      />
 
       <AuthModal
         isOpen={isAuthModalOpen}

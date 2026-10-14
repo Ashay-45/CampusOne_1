@@ -6,25 +6,21 @@ import {
   ArrowRight, 
   AlertCircle, 
   GraduationCap, 
-  BookOpen, 
-  Shield, 
-  Check 
+  ShieldAlert,
+  CheckCircle2
 } from 'lucide-react';
 
 export const RegisterPage = () => {
   const { register, isAuthenticated, role: activeRole } = useAuth();
   const navigate = useNavigate();
 
-  const [selectedRole, setSelectedRole] = useState('student');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     department: 'Computer Science & Engineering',
-    roll: '',
-    employeeId: '',
-    adminSecret: 'CAMPUS2026'
+    roll: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,11 +39,6 @@ export const RegisterPage = () => {
       ...prev,
       [e.target.name]: e.target.value
     }));
-  };
-
-  const handleRoleChange = (newRole) => {
-    setSelectedRole(newRole);
-    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -73,13 +64,12 @@ export const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
         department: formData.department,
-        role: selectedRole,
-        roll: selectedRole === 'student' ? (formData.roll || `CS-2024-${Math.floor(Math.random() * 900 + 100)}`) : undefined,
-        employeeId: selectedRole === 'teacher' ? (formData.employeeId || `EMP-FAC-${Math.floor(Math.random() * 900 + 100)}`) : undefined,
-        adminSecret: selectedRole === 'admin' ? formData.adminSecret : undefined
+        role: 'student',
+        roll: formData.roll || `CS-2024-${Math.floor(Math.random() * 900 + 100)}`
       });
 
-      const userRole = res?.user?.role || selectedRole;
+      // Redirect strictly based on server-verified role
+      const userRole = res?.user?.role || 'student';
       if (userRole === 'teacher') {
         navigate('/teacher');
       } else if (userRole === 'admin') {
@@ -93,30 +83,6 @@ export const RegisterPage = () => {
       setIsLoading(false);
     }
   };
-
-  const roleConfigs = [
-    {
-      id: 'student',
-      label: 'Student',
-      icon: <GraduationCap size={16} />,
-      badge: 'Academic Hub',
-      desc: 'Attendance tracking, course schedules, Code Hub sandbox, assessments, and ATS career portfolio.'
-    },
-    {
-      id: 'teacher',
-      label: 'Teacher / Faculty',
-      icon: <BookOpen size={16} />,
-      badge: 'Faculty Portal',
-      desc: 'Class attendance rosters, session marking, assessment authoring, and student performance matrices.'
-    },
-    {
-      id: 'admin',
-      label: 'Administrator',
-      icon: <Shield size={16} />,
-      badge: 'System Admin',
-      desc: 'Institutional metrics, department administration, user provisioning, and compliance oversight.'
-    }
-  ];
 
   return (
     <div className="auth-page-wrapper">
@@ -133,73 +99,29 @@ export const RegisterPage = () => {
           </Link>
         </div>
 
-        <h1 className="auth-title" style={{ textAlign: 'center' }}>Create Your Account</h1>
+        <h1 className="auth-title" style={{ textAlign: 'center' }}>Student Registration</h1>
         <p className="auth-subtitle" style={{ textAlign: 'center' }}>
-          Select your institutional role to access your dedicated workspace.
+          Create your verified student academic account.
         </p>
 
-        {/* Role Selector Tabs */}
-        <div style={{ marginBottom: '22px' }}>
-          <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>
-            Select Account Role
-          </label>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(3, 1fr)', 
-            gap: '8px',
-            background: 'var(--bg)',
-            padding: '4px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--bd)'
-          }}>
-            {roleConfigs.map((r) => {
-              const isSelected = selectedRole === r.id;
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => handleRoleChange(r.id)}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '8px 4px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    background: isSelected ? 'var(--ac)' : 'transparent',
-                    color: isSelected ? '#FFFFFF' : 'var(--mut)',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    transition: 'all 0.15s ease'
-                  }}
-                  id={`role-select-${r.id}`}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {r.icon}
-                    <span>{r.label}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Role Description */}
-          <div style={{ 
-            marginTop: '10px', 
-            padding: '10px 14px', 
-            background: 'var(--sf)', 
-            border: '1px solid var(--bd)', 
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.82rem',
-            color: 'var(--mut)',
-            lineHeight: 1.45
-          }}>
-            <strong style={{ color: 'var(--ink)' }}>
-              {roleConfigs.find(r => r.id === selectedRole)?.label}:
-            </strong>{' '}
-            {roleConfigs.find(r => r.id === selectedRole)?.desc}
+        {/* Security Notice: Public registration is student only */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px',
+          padding: '12px 14px',
+          background: 'var(--sf)',
+          border: '1px solid var(--bd)',
+          borderRadius: 'var(--radius-md)',
+          marginBottom: '20px',
+          fontSize: '0.82rem',
+          color: 'var(--mut)',
+          lineHeight: 1.45
+        }}>
+          <ShieldAlert size={16} style={{ color: 'var(--hi)', flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <strong style={{ color: 'var(--ink)' }}>Institutional Access Policy:</strong>{' '}
+            Public self-registration creates student accounts exclusively. Faculty and administrator accounts are provisioned via verified institutional onboarding.
           </div>
         </div>
 
@@ -230,7 +152,7 @@ export const RegisterPage = () => {
                 name="firstName"
                 type="text"
                 className="input-field"
-                placeholder={selectedRole === 'teacher' ? 'Priya' : selectedRole === 'admin' ? 'System' : 'Aarav'}
+                placeholder="Aarav"
                 value={formData.firstName}
                 onChange={handleChange}
                 required
@@ -244,7 +166,7 @@ export const RegisterPage = () => {
                 name="lastName"
                 type="text"
                 className="input-field"
-                placeholder={selectedRole === 'teacher' ? 'Raman' : selectedRole === 'admin' ? 'Admin' : 'Sharma'}
+                placeholder="Sharma"
                 value={formData.lastName}
                 onChange={handleChange}
                 required
@@ -253,19 +175,13 @@ export const RegisterPage = () => {
           </div>
 
           <div className="input-group">
-            <label className="input-label" htmlFor="reg-email">Institutional Email</label>
+            <label className="input-label" htmlFor="reg-email">Student Email</label>
             <input
               id="reg-email"
               name="email"
               type="email"
               className="input-field"
-              placeholder={
-                selectedRole === 'teacher' 
-                  ? 'priya.raman@campusone.edu' 
-                  : selectedRole === 'admin' 
-                    ? 'admin@campusone.edu' 
-                    : 'aarav.sharma@campusone.edu'
-              }
+              placeholder="aarav.sharma@campusone.edu"
               value={formData.email}
               onChange={handleChange}
               required
@@ -273,54 +189,18 @@ export const RegisterPage = () => {
             />
           </div>
 
-          {/* Role-Specific Secondary Fields */}
-          {selectedRole === 'student' && (
-            <div className="input-group">
-              <label className="input-label" htmlFor="reg-roll">Roll Number (Optional)</label>
-              <input
-                id="reg-roll"
-                name="roll"
-                type="text"
-                className="input-field"
-                placeholder="CS-2024-042"
-                value={formData.roll}
-                onChange={handleChange}
-              />
-            </div>
-          )}
-
-          {selectedRole === 'teacher' && (
-            <div className="input-group">
-              <label className="input-label" htmlFor="reg-employeeId">Faculty Employee ID (Optional)</label>
-              <input
-                id="reg-employeeId"
-                name="employeeId"
-                type="text"
-                className="input-field"
-                placeholder="EMP-FAC-102"
-                value={formData.employeeId}
-                onChange={handleChange}
-              />
-            </div>
-          )}
-
-          {selectedRole === 'admin' && (
-            <div className="input-group">
-              <label className="input-label" htmlFor="reg-adminSecret">Institutional Passkey</label>
-              <input
-                id="reg-adminSecret"
-                name="adminSecret"
-                type="text"
-                className="input-field"
-                placeholder="CAMPUS2026"
-                value={formData.adminSecret}
-                onChange={handleChange}
-              />
-              <span style={{ fontSize: '0.74rem', color: 'var(--mut)', marginTop: '4px' }}>
-                Default passkey: <code>CAMPUS2026</code>
-              </span>
-            </div>
-          )}
+          <div className="input-group">
+            <label className="input-label" htmlFor="reg-roll">Roll Number (Optional)</label>
+            <input
+              id="reg-roll"
+              name="roll"
+              type="text"
+              className="input-field"
+              placeholder="CS-2024-042"
+              value={formData.roll}
+              onChange={handleChange}
+            />
+          </div>
 
           <div className="input-group">
             <label className="input-label" htmlFor="reg-department">Academic Department</label>
@@ -362,7 +242,7 @@ export const RegisterPage = () => {
             disabled={isLoading}
             id="register-submit-btn"
           >
-            {isLoading ? 'Creating Account...' : `Register as ${selectedRole.toUpperCase()}`}
+            {isLoading ? 'Creating Student Account...' : 'Register Student Account'}
             {!isLoading && <ArrowRight size={16} />}
           </button>
         </form>
