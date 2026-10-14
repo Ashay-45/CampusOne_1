@@ -11,6 +11,7 @@ const generateToken = require('./utils/generateToken');
 const catData = require('./utils/catData');
 const { protect } = require('./middleware/auth');
 const { authorize } = require('./middleware/authorize');
+const { ensureDefaultUsers } = require('./utils/seedData');
 const academicRoutes = require('./routes/academic.routes');
 const testRoutes = require('./routes/test.routes');
 const careerRoutes = require('./routes/career.routes');
@@ -153,9 +154,13 @@ const aiLimiter = rateLimit({
   }
 });
 
-// Connect to MongoDB in non-test modes
+// Connect to MongoDB and ensure default evaluation personas exist in non-test modes
 if (process.env.NODE_ENV !== 'test') {
-  connectDB();
+  connectDB().then(async (conn) => {
+    if (conn) {
+      await ensureDefaultUsers();
+    }
+  });
 }
 
 // -------------------------------------------------------------
