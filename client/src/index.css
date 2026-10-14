@@ -123,6 +123,7 @@ a {
    ===================================================================== */
 
 /* Public Header & Navbar */
+.landing-nav-wrapper,
 .landing-header {
   position: sticky;
   top: 0;
@@ -131,10 +132,11 @@ a {
   border-bottom: 1px solid var(--bd);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background-color: rgba(250, 249, 246, 0.94);
+  width: 100%;
   transition: background-color 0.2s;
 }
 
+.landing-nav-inner,
 .landing-nav {
   display: flex;
   align-items: center;
@@ -145,6 +147,7 @@ a {
   padding: 0 24px;
 }
 
+.landing-nav-logo,
 .landing-brand {
   display: flex;
   align-items: center;
@@ -153,9 +156,11 @@ a {
   font-weight: 800;
   font-size: 1.4rem;
   color: var(--ink);
+  text-decoration: none;
   cursor: pointer;
 }
 
+.landing-logo-badge,
 .brand-badge {
   display: flex;
   align-items: center;
@@ -165,8 +170,10 @@ a {
   background: var(--ac);
   color: #FFFFFF;
   border-radius: var(--radius-sm);
+  flex-shrink: 0;
 }
 
+.landing-nav-logo span i,
 .landing-brand span i {
   font-style: normal;
   color: var(--hi);
@@ -175,20 +182,31 @@ a {
 .landing-menu-desktop {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 6px;
 }
 
 .landing-nav-link {
+  background: transparent;
+  border: none;
+  cursor: pointer;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--mut);
-  transition: color 0.15s ease;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  transition: color 0.15s ease, background-color 0.15s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
 }
 
 .landing-nav-link:hover {
   color: var(--ink);
+  background: var(--bd);
 }
 
+.landing-auth-actions,
 .landing-actions {
   display: flex;
   align-items: center;
@@ -355,7 +373,7 @@ a {
 /* Features Grid */
 .features-section {
   padding: 90px 0;
-  background: #FFFFFF;
+  background: var(--sf);
   border-top: 1px solid var(--bd);
   border-bottom: 1px solid var(--bd);
 }

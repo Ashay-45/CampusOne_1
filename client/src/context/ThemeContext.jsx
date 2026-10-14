@@ -6,7 +6,8 @@ export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('campusone_theme');
     if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Default to light editorial palette as required by CampusOne specifications
+    return 'light';
   });
 
   useEffect(() => {
