@@ -11,13 +11,10 @@
  * 8. Client production build artifacts exist and are valid
  */
 
-import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '../..');
 const clientSrc = path.join(rootDir, 'client/src');
 

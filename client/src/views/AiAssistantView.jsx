@@ -4,12 +4,12 @@ import { aiAPI } from '../services/api';
 import { Bot, Send, Sparkles, User, RefreshCw, Zap, Bookmark, ThumbsUp } from 'lucide-react';
 
 export const AiAssistantView = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     {
       id: 1,
       sender: 'assistant',
-      text: `Hello ${user.firstName || user.name}! I am CampusOne AI, your academic & career mentor. I have context on your 6th-semester coursework (DSA, DBMS, OS, Web Dev) and your current 8.84 CGPA. How can I help you excel today?`,
+      text: `Hello ${user?.firstName || user?.name || 'Scholar'}! I am CampusOne AI, your academic & career mentor. I have context on your 6th-semester coursework (DSA, DBMS, OS, Web Dev) and your current 8.84 CGPA. How can I help you excel today?`,
       timestamp: '10:00 AM'
     }
   ]);
@@ -39,31 +39,25 @@ export const AiAssistantView = () => {
     setIsTyping(true);
 
     try {
-      if (isDemoMode) {
-        setTimeout(() => {
-          generateLocalResponse(query);
-        }, 600);
-      } else {
-        const res = await aiAPI.chat(query, {
-          semester: 6,
-          cgpa: user.cgpa || 8.84,
-          department: user.department || 'Computer Science'
-        });
+      const res = await aiAPI.chat(query, {
+        semester: 6,
+        cgpa: user?.cgpa || 8.84,
+        department: user?.department || 'Computer Science'
+      });
 
-        if (res?.success && res.message) {
-          setMessages(prev => [
-            ...prev,
-            {
-              id: Date.now() + 1,
-              sender: 'assistant',
-              text: res.message,
-              timestamp: res.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-          ]);
-          setIsTyping(false);
-        } else {
-          generateLocalResponse(query);
-        }
+      if (res?.success && res.message) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'assistant',
+            text: res.message,
+            timestamp: res.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        setIsTyping(false);
+      } else {
+        generateLocalResponse(query);
       }
     } catch (e) {
       generateLocalResponse(query);
@@ -109,14 +103,14 @@ export const AiAssistantView = () => {
               <h3 style={{ fontSize: '1.15rem' }}>CampusOne AI Mentor</h3>
               <span style={{ fontSize: '0.8rem', color: 'var(--ac)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></span>
-                Context Active (Sem VI • B.Tech CSE • CGPA {user.cgpa || 8.84})
+                Context Active (Sem VI • B.Tech CSE • CGPA {user?.cgpa || 8.84})
               </span>
             </div>
           </div>
 
           <button 
             className="btn btn-secondary btn-sm"
-            onClick={() => setMessages([{ id: 1, sender: 'assistant', text: `Session cleared. How else can I assist you today, ${user.firstName || user.name}?`, timestamp: 'Just now' }])}
+            onClick={() => setMessages([{ id: 1, sender: 'assistant', text: `Session cleared. How else can I assist you today, ${user?.firstName || user?.name || 'Scholar'}?`, timestamp: 'Just now' }])}
           >
             <RefreshCw size={14} /> Clear History
           </button>

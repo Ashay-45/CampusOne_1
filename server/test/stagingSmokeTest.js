@@ -177,19 +177,16 @@ async function runStagingSmokeTests(inProcessApp = null) {
       assert(Array.isArray(res.body.profile.timetable));
     });
 
-    // Provision teacher user for teacher workflows
-    const teacherRegRes = await smokeReq('/auth/register', {
+    // Authenticate seeded teacher user for teacher workflows
+    const teacherLoginRes = await smokeReq('/auth/login', {
       method: 'POST',
       body: {
-        name: 'Dr. Staging Faculty',
-        email: `staging.faculty.${uniqueSuffix}@campusone.edu`,
-        password: 'StagingFacultyPass123!',
-        role: 'teacher',
-        adminSecret: process.env.ADMIN_REGISTRATION_SECRET || 'campusone_admin_setup_2026'
+        email: 'priya.raman@campusone.edu',
+        password: 'Campus@2024'
       }
     });
-    if (teacherRegRes.statusCode === 201) {
-      teacherToken = teacherRegRes.body.token;
+    if (teacherLoginRes.statusCode === 200) {
+      teacherToken = teacherLoginRes.body.token;
     }
 
     // 8. Teacher Attendance Recording Works
@@ -302,19 +299,16 @@ async function runStagingSmokeTests(inProcessApp = null) {
       assert.strictEqual(res.body.success, false);
     });
 
-    // Provision Admin for admin testing
-    const adminRegRes = await smokeReq('/auth/register', {
+    // Authenticate seeded Admin for admin testing
+    const adminLoginRes = await smokeReq('/auth/login', {
       method: 'POST',
       body: {
-        name: 'Institutional Staging Admin',
-        email: `staging.admin.${uniqueSuffix}@campusone.edu`,
-        password: 'AdminPassword123!',
-        role: 'admin',
-        adminSecret: process.env.ADMIN_REGISTRATION_SECRET || 'campusone_admin_setup_2026'
+        email: 'admin@campusone.edu',
+        password: 'Campus@2024'
       }
     });
-    if (adminRegRes.statusCode === 201) {
-      adminToken = adminRegRes.body.token;
+    if (adminLoginRes.statusCode === 200) {
+      adminToken = adminLoginRes.body.token;
     }
 
     // 14. Administrator Permissions Work
@@ -350,6 +344,8 @@ async function runStagingSmokeTests(inProcessApp = null) {
 
   if (passed !== total) {
     process.exit(1);
+  } else if (require.main === module) {
+    process.exit(0);
   }
 }
 

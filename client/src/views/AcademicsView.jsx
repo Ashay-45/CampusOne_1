@@ -12,7 +12,7 @@ const fallbackSubjects = [
 ];
 
 export const AcademicsView = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState(fallbackSubjects);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,15 +21,11 @@ export const AcademicsView = () => {
     setLoading(true);
     setError(null);
     try {
-      if (isDemoMode) {
-        setSubjects(fallbackSubjects);
+      const res = await academicsAPI.getSubjects();
+      if (res?.success && Array.isArray(res.subjects) && res.subjects.length > 0) {
+        setSubjects(res.subjects);
       } else {
-        const res = await academicsAPI.getSubjects();
-        if (res?.success && Array.isArray(res.subjects) && res.subjects.length > 0) {
-          setSubjects(res.subjects);
-        } else {
-          setSubjects(fallbackSubjects);
-        }
+        setSubjects(fallbackSubjects);
       }
     } catch (err) {
       console.warn('Academics subjects fetch error:', err.message);
@@ -42,7 +38,7 @@ export const AcademicsView = () => {
 
   useEffect(() => {
     fetchSubjects();
-  }, [user, isDemoMode]);
+  }, [user]);
 
   const handleSimulateAttendance = (id, type) => {
     setSubjects(prev => prev.map(s => {
@@ -71,7 +67,7 @@ export const AcademicsView = () => {
   return (
     <div className="container page-wrapper">
       {/* Network Notice */}
-      {error && !isDemoMode && (
+      {error && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', background: 'rgba(232, 163, 23, 0.12)', border: '1px solid var(--hi)', borderRadius: 'var(--radius-md)', marginBottom: '18px', color: 'var(--ink)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem' }}>
             <AlertCircle size={16} style={{ color: 'var(--hi)' }} />
@@ -88,7 +84,6 @@ export const AcademicsView = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <h1 style={{ fontSize: '1.85rem' }}>Academics & Attendance Roster</h1>
-            {isDemoMode && <span className="badge badge-hi">Preview Mode</span>}
           </div>
           <p style={{ color: 'var(--mut)', fontSize: '0.92rem' }}>
             Semester VI • Computer Science & Engineering • {subjects.length} Registered Courses

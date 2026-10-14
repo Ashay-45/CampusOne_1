@@ -34,7 +34,7 @@ const defaultOpportunities = [
 ];
 
 export const ResumeCareerView = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [atsScore, setAtsScore] = useState(84);
   const [skills, setSkills] = useState(fallbackSkills);
   const [projects, setProjects] = useState(fallbackProjects);
@@ -48,7 +48,6 @@ export const ResumeCareerView = () => {
   const [toast, setToast] = useState('');
 
   const fetchCareerData = async () => {
-    if (isDemoMode) return;
     try {
       const res = await careerAPI.getProfile();
       if (res?.success && res.career) {
@@ -64,27 +63,18 @@ export const ResumeCareerView = () => {
 
   useEffect(() => {
     fetchCareerData();
-  }, [user, isDemoMode]);
+  }, [user]);
 
   const handleReanalyze = async () => {
     setAnalyzing(true);
     try {
-      if (isDemoMode) {
-        setTimeout(() => {
-          setAtsScore(88);
-          setToast('ATS re-scan complete! Match score updated to 88.');
-          setAnalyzing(false);
-          setTimeout(() => setToast(''), 4000);
-        }, 600);
-      } else {
-        const res = await careerAPI.scanAts();
-        if (res?.success && res.atsScore) {
-          setAtsScore(res.atsScore);
-          setToast(`✅ Server ATS Scan complete: Score updated to ${res.atsScore}/100.`);
-        }
-        setAnalyzing(false);
-        setTimeout(() => setToast(''), 4000);
+      const res = await careerAPI.scanAts();
+      if (res?.success && res.atsScore) {
+        setAtsScore(res.atsScore);
+        setToast(`✅ Server ATS Scan complete: Score updated to ${res.atsScore}/100.`);
       }
+      setAnalyzing(false);
+      setTimeout(() => setToast(''), 4000);
     } catch (err) {
       setToast('⚠️ ' + err.message);
       setAnalyzing(false);
@@ -97,23 +87,16 @@ export const ResumeCareerView = () => {
     if (!newTitle || !newTech || !newDesc) return;
 
     try {
-      if (isDemoMode) {
-        const newProj = { title: newTitle, tech: newTech, desc: newDesc, impact: newImpact || 'Verified technical deliverable' };
-        setProjects([newProj, ...projects]);
-        setAtsScore(prev => Math.min(98, prev + 2));
-        setToast('Project added to local portfolio.');
-      } else {
-        const res = await careerAPI.addProject({
-          title: newTitle,
-          tech: newTech,
-          desc: newDesc,
-          impact: newImpact
-        });
-        if (res?.success) {
-          setProjects([res.project, ...projects]);
-          if (res.atsScore) setAtsScore(res.atsScore);
-          setToast('✅ Project saved and persisted to MongoDB placement portfolio.');
-        }
+      const res = await careerAPI.addProject({
+        title: newTitle,
+        tech: newTech,
+        desc: newDesc,
+        impact: newImpact
+      });
+      if (res?.success) {
+        setProjects([res.project, ...projects]);
+        if (res.atsScore) setAtsScore(res.atsScore);
+        setToast('✅ Project saved and persisted to MongoDB placement portfolio.');
       }
       setShowAddModal(false);
       setNewTitle('');
@@ -133,7 +116,6 @@ export const ResumeCareerView = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <h1 style={{ fontSize: '1.85rem' }}>Resume & Career Development Hub</h1>
-            {isDemoMode && <span className="badge badge-hi">Preview Mode</span>}
           </div>
           <p style={{ color: 'var(--mut)', fontSize: '0.92rem' }}>
             ATS score optimization, technical skill inventory, and tailored internship matchmaking.

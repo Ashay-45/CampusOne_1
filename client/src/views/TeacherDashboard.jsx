@@ -13,7 +13,7 @@ const defaultRoster = [
 ];
 
 export const TeacherDashboard = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [selectedBatch, setSelectedBatch] = useState('CS-6A');
   const [roster, setRoster] = useState(defaultRoster);
   const [notification, setNotification] = useState('');
@@ -21,7 +21,6 @@ export const TeacherDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchRoster = async () => {
-    if (isDemoMode) return;
     setLoading(true);
     try {
       const res = await academicsAPI.getBatchRoster(selectedBatch);
@@ -43,7 +42,7 @@ export const TeacherDashboard = () => {
 
   useEffect(() => {
     fetchRoster();
-  }, [selectedBatch, isDemoMode]);
+  }, [selectedBatch]);
 
   const toggleStudent = (id) => {
     setRoster(prev => prev.map(s => {
@@ -55,26 +54,21 @@ export const TeacherDashboard = () => {
   const handleSaveAttendance = async () => {
     setSaving(true);
     try {
-      if (isDemoMode) {
-        const presentCount = roster.filter(r => r.status === 'present').length;
-        setNotification(`[Preview Mode] Attendance saved locally: ${presentCount}/${roster.length} students marked present for CS-601.`);
-      } else {
-        const res = await academicsAPI.markAttendance({
-          subjectCode: 'CS-601',
-          batch: selectedBatch,
-          topic: 'Data Structures - Tree Balancing & Graphs',
-          sessionType: 'lecture',
-          records: roster.map(s => ({
-            studentId: s.id,
-            status: s.status
-          }))
-        });
+      const res = await academicsAPI.markAttendance({
+        subjectCode: 'CS-601',
+        batch: selectedBatch,
+        topic: 'Data Structures - Tree Balancing & Graphs',
+        sessionType: 'lecture',
+        records: roster.map(s => ({
+          studentId: s.id,
+          status: s.status
+        }))
+      });
 
-        if (res?.success) {
-          setNotification(`✅ Attendance persisted to MongoDB! Session ID: ${res.session.id.slice(-6)} (${res.summary.present} Present, ${res.summary.absent} Absent).`);
-        } else {
-          throw new Error(res?.message || 'Failed to persist session');
-        }
+      if (res?.success) {
+        setNotification(`✅ Attendance persisted to MongoDB! Session ID: ${res.session?.id ? res.session.id.slice(-6) : 'Verified'} (${res.summary?.present || 0} Present, ${res.summary?.absent || 0} Absent).`);
+      } else {
+        throw new Error(res?.message || 'Failed to persist session');
       }
     } catch (err) {
       setNotification(`⚠️ ${err.message || 'Error saving attendance to server'}`);
@@ -100,11 +94,10 @@ export const TeacherDashboard = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <span className="badge badge-hi">Faculty Portal</span>
-              <span style={{ fontSize: '0.84rem', color: 'var(--mut)' }}>{user.department || 'Computer Science & Engineering'}</span>
-              {isDemoMode && <span className="badge badge-neutral">Preview Persona</span>}
+              <span style={{ fontSize: '0.84rem', color: 'var(--mut)' }}>{user?.department || 'Computer Science & Engineering'}</span>
             </div>
             <h1 style={{ fontSize: '1.9rem', marginBottom: '4px' }}>
-              Welcome, {user.name} 🎓
+              Welcome, {user?.name || 'Faculty Member'} 🎓
             </h1>
             <p style={{ color: 'var(--mut)', fontSize: '0.94rem' }}>
               Primary Handled Subjects: Data Structures & Algorithms (CS-601), Database Systems (CS-602)

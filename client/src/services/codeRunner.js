@@ -101,7 +101,9 @@ export const executeInSandbox = (code, fnName, testCases) => {
           passed: allPassed,
           cases: data.results,
           runtime: data.runtime,
-          memory: `${(Math.random() * 2 + 40).toFixed(1)} MB`
+          memory: (typeof performance !== 'undefined' && performance.memory?.usedJSHeapSize) 
+            ? `${(performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1)} MB` 
+            : 'Isolated (Worker Sandbox)'
         });
       }
     };

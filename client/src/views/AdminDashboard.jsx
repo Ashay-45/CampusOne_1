@@ -19,7 +19,7 @@ const fallbackDepts = [
 ];
 
 export const AdminDashboard = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [usersList, setUsersList] = useState(fallbackUsers);
   const [departments, setDepartments] = useState(fallbackDepts);
   const [metrics, setMetrics] = useState({
@@ -38,7 +38,6 @@ export const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchAdminData = async () => {
-    if (isDemoMode) return;
     setLoading(true);
     try {
       const [usersRes, metricsRes] = await Promise.all([
@@ -69,26 +68,17 @@ export const AdminDashboard = () => {
 
   useEffect(() => {
     fetchAdminData();
-  }, [user, isDemoMode]);
+  }, []);
 
   const handleToggleStatus = async (userId) => {
     try {
-      if (isDemoMode) {
+      const res = await adminAPI.toggleUserStatus(userId);
+      if (res?.success) {
         setUsersList(prev => prev.map(u => {
           if (u.id !== userId) return u;
-          const newStatus = u.status === 'Active' ? 'Inactive' : 'Active';
-          return { ...u, status: newStatus };
+          return { ...u, status: res.isActive ? 'Active' : 'Inactive' };
         }));
-        setToast('User status toggled in local preview.');
-      } else {
-        const res = await adminAPI.toggleUserStatus(userId);
-        if (res?.success) {
-          setUsersList(prev => prev.map(u => {
-            if (u.id !== userId) return u;
-            return { ...u, status: res.isActive ? 'Active' : 'Inactive' };
-          }));
-          setToast(`✅ ${res.message}`);
-        }
+        setToast(`✅ ${res.message}`);
       }
     } catch (err) {
       setToast('⚠️ ' + err.message);
@@ -102,29 +92,16 @@ export const AdminDashboard = () => {
     if (!newName || !newEmail || !newPassword) return;
 
     try {
-      if (isDemoMode) {
-        const newUser = {
-          id: 'usr_' + Date.now().toString().slice(-4),
-          name: newName,
-          email: newEmail,
-          role: newRole,
-          dept: newDept,
-          status: 'Active'
-        };
-        setUsersList([newUser, ...usersList]);
-        setToast(`User ${newName} provisioned in preview mode.`);
-      } else {
-        const res = await adminAPI.provisionUser({
-          name: newName,
-          email: newEmail,
-          password: newPassword,
-          role: newRole,
-          department: newDept
-        });
-        if (res?.success) {
-          setUsersList([res.user, ...usersList]);
-          setToast(`✅ User ${newName} provisioned and persisted in MongoDB.`);
-        }
+      const res = await adminAPI.provisionUser({
+        name: newName,
+        email: newEmail,
+        password: newPassword,
+        role: newRole,
+        department: newDept
+      });
+      if (res?.success) {
+        setUsersList(prev => [res.user, ...prev]);
+        setToast(`✅ User ${newName} (${newRole}) provisioned and persisted in MongoDB.`);
       }
       setShowAddModal(false);
       setNewName('');
@@ -152,7 +129,6 @@ export const AdminDashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <span className="badge badge-bad">Institutional Administration</span>
               <span style={{ fontSize: '0.84rem', color: 'var(--mut)' }}>Campus Central Governance</span>
-              {isDemoMode && <span className="badge badge-neutral">Preview Persona</span>}
             </div>
             <h1 style={{ fontSize: '1.9rem', marginBottom: '4px' }}>
               System Governance & Control Center 🛡️

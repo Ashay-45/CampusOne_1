@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export const StudentDashboard = ({ onNavigate }) => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,35 +29,18 @@ export const StudentDashboard = ({ onNavigate }) => {
     setLoading(true);
     setError(null);
     try {
-      if (isDemoMode) {
-        // In visual demo preview, use local default profile
-        setProfileData({
-          cgpa: user.cgpa || 8.84,
-          totalClasses: 120,
-          attendedClasses: 106,
-          ranking: 4,
-          streak: 14,
-          timetable: [
-            { time: '09:30 - 10:30 AM', subject: 'Data Structures & Algorithms', room: 'Hall 302', faculty: 'Dr. Priya Raman', status: 'completed' },
-            { time: '10:45 - 11:45 AM', subject: 'Database Management Systems', room: 'Lab 4', faculty: 'Prof. K. Verma', status: 'ongoing' },
-            { time: '01:30 - 02:30 PM', subject: 'Operating Systems & Concurrency', room: 'Hall 205', faculty: 'Dr. S. Nair', status: 'upcoming' },
-            { time: '02:45 - 04:15 PM', subject: 'Full-Stack Web Engineering Lab', room: 'Software Lab 2', faculty: 'Prof. M. Sen', status: 'upcoming' }
-          ]
-        });
+      const res = await academicsAPI.getStudentProfile();
+      if (res?.success && res.profile) {
+        setProfileData(res.profile);
       } else {
-        const res = await academicsAPI.getStudentProfile();
-        if (res?.success && res.profile) {
-          setProfileData(res.profile);
-        } else {
-          throw new Error('Failed to load profile data');
-        }
+        throw new Error('Failed to load profile data');
       }
     } catch (err) {
       console.warn('Student profile fetch error:', err.message);
       setError(err.message);
-      // Fallback to safe visual state
+      // Fallback to default student metrics
       setProfileData({
-        cgpa: user.cgpa || 8.84,
+        cgpa: user?.cgpa || 8.84,
         totalClasses: 120,
         attendedClasses: 106,
         ranking: 4,
@@ -76,7 +59,7 @@ export const StudentDashboard = ({ onNavigate }) => {
 
   useEffect(() => {
     fetchProfile();
-  }, [user, isDemoMode]);
+  }, [user]);
 
   const totalClasses = profileData?.totalClasses || 120;
   const attendedClasses = profileData?.attendedClasses || 106;
@@ -96,7 +79,7 @@ export const StudentDashboard = ({ onNavigate }) => {
   return (
     <div className="container page-wrapper">
       {/* Network / Connection Alert */}
-      {error && !isDemoMode && (
+      {error && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', background: 'rgba(232, 163, 23, 0.12)', border: '1px solid var(--hi)', borderRadius: 'var(--radius-md)', marginBottom: '18px', color: 'var(--ink)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem' }}>
             <AlertCircle size={16} style={{ color: 'var(--hi)' }} />
@@ -124,13 +107,10 @@ export const StudentDashboard = ({ onNavigate }) => {
               <span className="badge badge-ac">
                 <Flame size={13} style={{ color: 'var(--hi)' }} /> {profileData?.streak || 14}-Day Study Streak
               </span>
-              <span className="badge badge-neutral">{user.division || profileData?.division || 'B.Tech CSE - 6th Sem'}</span>
-              {isDemoMode && (
-                <span className="badge badge-hi" title="Operating with client preview persona">Preview Mode</span>
-              )}
+              <span className="badge badge-neutral">{user?.division || profileData?.division || 'B.Tech CSE - 6th Sem'}</span>
             </div>
             <h1 style={{ fontSize: '1.9rem', marginBottom: '4px' }}>
-              Welcome back, {user.name}! 🚀
+              Welcome back, {user?.name || 'Student'}! 🚀
             </h1>
             <p style={{ color: 'var(--mut)', fontSize: '0.94rem' }}>
               Your academic standing is <strong style={{ color: 'var(--ac)' }}>Top 5%</strong> this semester. Next lecture starts in 20 minutes.
@@ -156,7 +136,7 @@ export const StudentDashboard = ({ onNavigate }) => {
             <div className="stat-icon"><Award size={20} /></div>
           </div>
           <div>
-            <div className="stat-value">{profileData?.cgpa || user.cgpa || '8.84'}</div>
+            <div className="stat-value">{profileData?.cgpa || user?.cgpa || '8.84'}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
               <span className="stat-change positive"><TrendingUp size={12} /> +0.18</span>
               <span style={{ fontSize: '0.8rem', color: 'var(--mut)' }}>Semester Rank #{profileData?.ranking || 4}</span>

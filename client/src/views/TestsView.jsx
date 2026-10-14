@@ -5,7 +5,6 @@ import { demoQuestions } from '../services/demoData';
 import { CheckCircle2, XCircle, Clock, Award, Play, RotateCcw, HelpCircle, Check, ArrowRight, AlertCircle, RefreshCw, Sparkles } from 'lucide-react';
 
 export const TestsView = () => {
-  const { isDemoMode } = useAuth();
   const [selectedTopic, setSelectedTopic] = useState('ALL');
   const [quizState, setQuizState] = useState('idle'); // 'idle' | 'running' | 'submitting' | 'completed'
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -25,7 +24,6 @@ export const TestsView = () => {
   // Fetch history on mount
   useEffect(() => {
     const fetchHistory = async () => {
-      if (isDemoMode) return;
       try {
         const res = await testsAPI.getHistory();
         if (res?.success && Array.isArray(res.attempts) && res.attempts.length > 0) {
@@ -43,7 +41,7 @@ export const TestsView = () => {
     };
 
     fetchHistory();
-  }, [isDemoMode]);
+  }, []);
 
   // Timer countdown
   useEffect(() => {
@@ -65,36 +63,22 @@ export const TestsView = () => {
     setLoading(true);
 
     try {
-      if (isDemoMode) {
+      const res = await testsAPI.getActiveAssessments(topic);
+      if (res?.success && Array.isArray(res.assessments) && res.assessments.length > 0) {
+        const assess = res.assessments[0];
+        setActiveAssessment(assess);
+        setQuestions(assess.questions);
+        setTimeLeft(assess.timeLimitMinutes * 60);
+        setQuizState('running');
+      } else {
+        // Fallback to demo questions
         const filtered = topic === 'ALL' 
           ? demoQuestions 
           : demoQuestions.filter(q => q.topic === topic);
-        setQuestions(filtered.map(q => ({
-          id: q.id,
-          question: q.question,
-          options: q.options
-        })));
-        setActiveAssessment({ id: 'demo_assess_01', title: `${topic} Assessment Test`, timeLimitMinutes: 3 });
+        setQuestions(filtered.map(q => ({ id: q.id, question: q.question, options: q.options })));
+        setActiveAssessment({ id: 'demo_assess_01', title: `${topic} Diagnostic Test`, timeLimitMinutes: 3 });
         setTimeLeft(180);
         setQuizState('running');
-      } else {
-        const res = await testsAPI.getActiveAssessments(topic);
-        if (res?.success && Array.isArray(res.assessments) && res.assessments.length > 0) {
-          const assess = res.assessments[0];
-          setActiveAssessment(assess);
-          setQuestions(assess.questions);
-          setTimeLeft(assess.timeLimitMinutes * 60);
-          setQuizState('running');
-        } else {
-          // Fallback to demo questions
-          const filtered = topic === 'ALL' 
-            ? demoQuestions 
-            : demoQuestions.filter(q => q.topic === topic);
-          setQuestions(filtered.map(q => ({ id: q.id, question: q.question, options: q.options })));
-          setActiveAssessment({ id: 'demo_assess_01', title: `${topic} Diagnostic Test`, timeLimitMinutes: 3 });
-          setTimeLeft(180);
-          setQuizState('running');
-        }
       }
     } catch (err) {
       console.warn('Could not load remote assessment, using safe local mode:', err.message);
@@ -121,8 +105,8 @@ export const TestsView = () => {
     setQuizState('submitting');
     const totalTimeSpent = (activeAssessment?.timeLimitMinutes || 3) * 60 - timeLeft;
 
-    if (isDemoMode || !activeAssessment?.id || String(activeAssessment.id).startsWith('demo_')) {
-      // Local client evaluation for demo mode
+    if (!activeAssessment?.id || String(activeAssessment.id).startsWith('demo_')) {
+      // Local client evaluation for catalog practice quizzes
       let correct = 0;
       const review = questions.map((q, idx) => {
         const demoQ = demoQuestions.find(d => d.question === q.question) || demoQuestions[idx] || {};
@@ -201,7 +185,6 @@ export const TestsView = () => {
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <h1 style={{ fontSize: '1.85rem' }}>Assessment & Test Engine</h1>
-          {isDemoMode && <span className="badge badge-hi">Preview Mode</span>}
         </div>
         <p style={{ color: 'var(--mut)', fontSize: '0.92rem' }}>
           Evaluate topic proficiency with server-verified timed assessments and confidential answer scoring.
