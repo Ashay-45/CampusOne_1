@@ -1,0 +1,26 @@
+{
+  "name": "campusone-server",
+  "version": "1.0.0",
+  "description": "CampusOne Backend API - Express, MongoDB, JWT & RBAC",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node utils/seedData.js",
+    "test": "node test/authTest.js && node test/academicTest.js && node test/assessmentTest.js && node test/adminAndCareerTest.js && node test/e2eWorkflowTest.js && node test/securityAndStagingTest.js",
+    "test:smoke": "node test/stagingSmokeTest.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

@@ -1,0 +1,63 @@
+# ==============================================================================
+# CampusOne Git Ignore Configuration
+# ==============================================================================
+
+# Dependencies
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json.bak
+
+# Environment Variables & Sensitive Credentials (NEVER COMMIT)
+.env
+.env.*
+*.env
+server/.env
+server/.env.*
+client/.env
+client/.env.*
+!*.env.example
+!**/*.env.example
+
+# Production Builds & Compiled Assets
+dist/
+dist-ssr/
+client/dist/
+build/
+out/
+*.local
+
+# IDE & Editor Configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# OS-Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# Testing, Coverage & Scratch Directories
+coverage/
+.nyc_output/
+*.lcov
+scratch/
+.system_generated/
+
+# Logs & Runtime Artefacts
+logs/
+*.log
