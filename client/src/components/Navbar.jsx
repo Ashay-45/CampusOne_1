@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { 
@@ -16,12 +17,14 @@ import {
   Shield, 
   ChevronDown,
   Layers,
-  Sparkles
+  Sparkles,
+  LogOut
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModal }) => {
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const studentTabs = [
@@ -50,11 +53,33 @@ export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModa
   if (role === 'teacher') currentTabs = teacherTabs;
   if (role === 'admin') currentTabs = adminTabs;
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/', { replace: true });
+  };
+
+  const userAvatar = user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const userName = user?.firstName || user?.name || (role ? role.toUpperCase() : 'Account');
+
   return (
     <header className="navbar-wrapper">
       <div className="navbar">
         {/* Logo */}
-        <div className="nav-logo" onClick={() => onSelectTab(role === 'student' ? 'dashboard' : role === 'teacher' ? 'teacher_dashboard' : 'admin_dashboard')}>
+        <div 
+          className="nav-logo" 
+          onClick={() => {
+            if (role === 'teacher') {
+              navigate('/teacher');
+              if (onSelectTab) onSelectTab('teacher_dashboard');
+            } else if (role === 'admin') {
+              navigate('/admin');
+              if (onSelectTab) onSelectTab('admin_dashboard');
+            } else {
+              navigate('/dashboard');
+              if (onSelectTab) onSelectTab('dashboard');
+            }
+          }}
+        >
           <div className="nav-logo-icon">
             <Sparkles size={18} />
           </div>
@@ -67,7 +92,7 @@ export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModa
             <button
               key={tab.id}
               className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => onSelectTab(tab.id)}
+              onClick={() => onSelectTab && onSelectTab(tab.id)}
             >
               {tab.icon}
               <span>{tab.label}</span>
@@ -79,11 +104,11 @@ export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModa
         <div className="nav-actions">
           {/* Quick Role Switcher Pill */}
           <button 
-            className={`role-badge role-${role}`}
+            className={`role-badge role-${role || 'student'}`}
             onClick={onOpenRoleModal}
-            title="Switch User Role"
+            title="Switch User Role Preview"
           >
-            <span>{role}</span>
+            <span>{role || 'student'}</span>
             <ChevronDown size={14} />
           </button>
 
@@ -155,16 +180,28 @@ export const Navbar = ({ activeTab, onSelectTab, onOpenRoleModal, onOpenAuthModa
             title="Profile & Settings"
           >
             <img 
-              src={user.avatar} 
-              alt={user.name} 
+              src={userAvatar} 
+              alt={userName} 
               style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} 
             />
             <span style={{ fontSize: '0.85rem', fontWeight: 600, maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {user.firstName || user.name}
+              {userName}
             </span>
           </div>
+
+          {/* Dedicated Sign Out Button */}
+          <button
+            className="icon-btn"
+            onClick={handleLogout}
+            title="Sign Out to Landing Page"
+            id="nav-logout-btn"
+            style={{ color: 'var(--bad)' }}
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </header>
   );
 };
+

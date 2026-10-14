@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { LandingPage } from './views/LandingPage';
+import { LoginPage } from './views/LoginPage';
+import { RegisterPage } from './views/RegisterPage';
 import { Navbar } from './components/Navbar';
 import { RoleSwitcherModal } from './components/RoleSwitcherModal';
 import { AuthModal } from './components/AuthModal';
@@ -12,13 +17,21 @@ import { ResumeCareerView } from './views/ResumeCareerView';
 import { TeacherDashboard } from './views/TeacherDashboard';
 import { AdminDashboard } from './views/AdminDashboard';
 
-export function App() {
+/**
+ * Authenticated Workspace Shell
+ * Wraps protected views with navigation, modals, and responsive tab management.
+ */
+function DashboardShell({ initialTab = 'dashboard' }) {
   const { role } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Sync default tab when role changes if tab is role-specific
+  // Sync activeTab when initialTab or role prop changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   const handleSelectTab = (tabId) => {
     setActiveTab(tabId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -43,6 +56,8 @@ export function App() {
       case 'admin_dashboard':
         return <AdminDashboard />;
       default:
+        if (role === 'teacher') return <TeacherDashboard />;
+        if (role === 'admin') return <AdminDashboard />;
         return <StudentDashboard onNavigate={handleSelectTab} />;
     }
   };
@@ -60,7 +75,7 @@ export function App() {
         {renderCurrentView()}
       </main>
 
-      {/* Modals */}
+      {/* Role Switcher & Auth Modals */}
       <RoleSwitcherModal
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
@@ -72,6 +87,60 @@ export function App() {
         onClose={() => setIsAuthModalOpen(false)}
       />
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <Routes>
+      {/* =====================================================================
+          Public Routes (No authentication required, zero PII exposure)
+          ===================================================================== */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* =====================================================================
+          Protected Student Workspace (/dashboard)
+          ===================================================================== */}
+      <Route
+        path="/dashboard/*"
+        element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <DashboardShell initialTab="dashboard" />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* =====================================================================
+          Protected Faculty / Teacher Portal (/teacher)
+          ===================================================================== */}
+      <Route
+        path="/teacher/*"
+        element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <DashboardShell initialTab="teacher_dashboard" />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* =====================================================================
+          Protected Administrator Console (/admin)
+          ===================================================================== */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <DashboardShell initialTab="admin_dashboard" />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* =====================================================================
+          Fallback: Redirect unknown paths to public landing page
+          ===================================================================== */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

@@ -3,7 +3,7 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
-const demoPersonas = {
+export const demoPersonas = {
   student: {
     id: 'demo_std_01',
     name: 'Aarav Sharma',
@@ -51,43 +51,63 @@ const demoPersonas = {
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('campusone_token') || null);
-  const [role, setRole] = useState(() => localStorage.getItem('campusone_active_role') || 'student');
+  const [role, setRole] = useState(() => localStorage.getItem('campusone_active_role') || null);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('campusone_user');
-    if (saved) {
+    const savedToken = localStorage.getItem('campusone_token');
+    if (saved && savedToken) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return demoPersonas[role] || demoPersonas.student;
+    return null;
   });
-  const [loading, setLoading] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(() => !localStorage.getItem('campusone_token'));
+  
+  // Only show initial loading state if a token exists and needs backend hydration
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('campusone_token')));
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Hydrate session from backend on startup if token exists
   useEffect(() => {
+    let isMounted = true;
+    const storedToken = localStorage.getItem('campusone_token');
+
+    if (!storedToken) {
+      setLoading(false);
+      return;
+    }
+
     const hydrateSession = async () => {
-      const storedToken = localStorage.getItem('campusone_token');
-      if (storedToken) {
-        try {
-          const res = await authAPI.getMe(storedToken);
-          if (res?.success && res.user) {
-            setUser(res.user);
-            setRole(res.user.role);
-            setIsDemoMode(false);
-            localStorage.setItem('campusone_user', JSON.stringify(res.user));
-            localStorage.setItem('campusone_active_role', res.user.role);
-          }
-        } catch (err) {
-          console.warn('Session expired or server unavailable, reverting to demo state:', err.message);
-          // Token invalid, clear stale credentials
+      try {
+        const res = await authAPI.getMe(storedToken);
+        if (isMounted && res?.success && res.user) {
+          setUser(res.user);
+          setRole(res.user.role);
+          setIsDemoMode(false);
+          localStorage.setItem('campusone_user', JSON.stringify(res.user));
+          localStorage.setItem('campusone_active_role', res.user.role);
+        }
+      } catch (err) {
+        console.warn('Session expired or server unavailable:', err.message);
+        if (isMounted) {
           setToken(null);
+          setUser(null);
+          setRole(null);
+          setIsDemoMode(false);
           localStorage.removeItem('campusone_token');
-          setIsDemoMode(true);
+          localStorage.removeItem('campusone_user');
+          localStorage.removeItem('campusone_active_role');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
-      setLoading(false);
     };
 
     hydrateSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Real backend login
@@ -106,7 +126,7 @@ export const AuthProvider = ({ children }) => {
     throw new Error(res?.message || 'Login failed');
   };
 
-  // Real backend registration
+  // Real backend registration (public registration assigns student)
   const register = async (userData) => {
     const res = await authAPI.register(userData);
     if (res?.success && res.token) {
@@ -127,27 +147,28 @@ export const AuthProvider = ({ children }) => {
       await authAPI.logout();
     } catch (e) {}
     setToken(null);
+    setUser(null);
+    setRole(null);
+    setIsDemoMode(false);
     localStorage.removeItem('campusone_token');
-    setIsDemoMode(true);
-    // Revert to default student persona
-    setUser(demoPersonas.student);
-    setRole('student');
-    localStorage.setItem('campusone_active_role', 'student');
+    localStorage.removeItem('campusone_user');
+    localStorage.removeItem('campusone_active_role');
   };
 
-  // Explicit demo persona switch (UI ONLY — does not forge backend permissions)
+  // Explicit demo persona switch (UI ONLY preview)
   const switchDemoPersona = (targetRole) => {
     if (demoPersonas[targetRole]) {
       setRole(targetRole);
       setUser(demoPersonas[targetRole]);
       setIsDemoMode(true);
-      // Remove real token when switching to mock persona to ensure backend isolation
-      setToken(null);
-      localStorage.removeItem('campusone_token');
+      setToken('demo_preview_token');
+      localStorage.setItem('campusone_token', 'demo_preview_token');
       localStorage.setItem('campusone_active_role', targetRole);
       localStorage.setItem('campusone_user', JSON.stringify(demoPersonas[targetRole]));
     }
   };
+
+  const isAuthenticated = Boolean((token && user) || isDemoMode);
 
   return (
     <AuthContext.Provider
@@ -157,7 +178,7 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         isDemoMode,
-        isAuthenticated: Boolean(token),
+        isAuthenticated,
         login,
         register,
         logout,

@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GraduationCap, BookOpen, Shield, Check, X } from 'lucide-react';
 
 export const RoleSwitcherModal = ({ isOpen, onClose, onSelectTab }) => {
   const { role, switchRole } = useAuth();
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -16,7 +18,8 @@ export const RoleSwitcherModal = ({ isOpen, onClose, onSelectTab }) => {
       badge: 'Academic & Career Hub',
       icon: <GraduationCap size={24} />,
       color: 'var(--ac)',
-      targetTab: 'dashboard'
+      targetTab: 'dashboard',
+      route: '/dashboard'
     },
     {
       id: 'teacher',
@@ -26,7 +29,8 @@ export const RoleSwitcherModal = ({ isOpen, onClose, onSelectTab }) => {
       badge: 'Instructor & Evaluator',
       icon: <BookOpen size={24} />,
       color: 'var(--hi)',
-      targetTab: 'teacher_dashboard'
+      targetTab: 'teacher_dashboard',
+      route: '/teacher'
     },
     {
       id: 'admin',
@@ -36,15 +40,18 @@ export const RoleSwitcherModal = ({ isOpen, onClose, onSelectTab }) => {
       badge: 'System Governance',
       icon: <Shield size={24} />,
       color: 'var(--bad)',
-      targetTab: 'admin_dashboard'
+      targetTab: 'admin_dashboard',
+      route: '/admin'
     }
   ];
 
   const handleSelectRole = (r) => {
     switchRole(r.id);
-    onSelectTab(r.targetTab);
+    if (onSelectTab) onSelectTab(r.targetTab);
+    navigate(r.route);
     onClose();
   };
+
 
   return (
     <div className="modal-overlay" onClick={onClose}>
