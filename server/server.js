@@ -251,10 +251,10 @@ app.post('/api/v1/auth/login', loginLimiter, async (req, res) => {
 });
 
 // @route   POST /api/v1/auth/register
-// @desc    Register new user account (public registrations restricted to 'student')
+// @desc    Register new user account (public registrations strictly restricted to 'student')
 app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
   try {
-    const { name, email, password, role, adminSecret } = req.body;
+    const { name, email, password, role } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -262,7 +262,31 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Role sanitation: Public registration is strictly restricted to student role
+    // Any attempt to self-assign teacher or admin role is rejected
+    if (role && (role === 'admin' || role === 'teacher')) {
+      return res.status(403).json({
+        success: false,
+        message: `Public registration for '${role}' role is prohibited. Faculty and administrator accounts must be provisioned through authorized administrative channels.`
+      });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -270,24 +294,11 @@ app.post('/api/v1/auth/register', registerLimiter, async (req, res) => {
       });
     }
 
-    // Role sanitation: Prevent arbitrary public registration of privileged roles
-    let assignedRole = 'student';
-    if (role === 'admin' || role === 'teacher') {
-      const configuredAdminSecret = process.env.ADMIN_REGISTRATION_SECRET || 'campusone_admin_setup_2026';
-      if (adminSecret !== configuredAdminSecret) {
-        return res.status(403).json({
-          success: false,
-          message: `Public registration for '${role}' role is prohibited without authorization.`
-        });
-      }
-      assignedRole = role;
-    }
-
     const newUser = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password,
-      role: assignedRole
+      role: 'student'
     });
 
     const token = generateToken(newUser._id, newUser.role);
