@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './views/LandingPage';
 import { LoginPage } from './views/LoginPage';
@@ -82,55 +83,57 @@ function DashboardShell({ initialTab = 'dashboard' }) {
 
 export function App() {
   return (
-    <Routes>
-      {/* =====================================================================
-          Public Routes (No authentication required, zero PII exposure)
-          ===================================================================== */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+    <ErrorBoundary>
+      <Routes>
+        {/* =====================================================================
+            Public Routes (No authentication required, zero PII exposure)
+            ===================================================================== */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-      {/* =====================================================================
-          Protected Student Workspace (/dashboard)
-          ===================================================================== */}
-      <Route
-        path="/dashboard/*"
-        element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <DashboardShell initialTab="dashboard" />
-          </ProtectedRoute>
-        }
-      />
+        {/* =====================================================================
+            Protected Student Workspace (/dashboard)
+            ===================================================================== */}
+        <Route
+          path="/dashboard/*"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <DashboardShell initialTab="dashboard" />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* =====================================================================
-          Protected Faculty / Teacher Portal (/teacher)
-          ===================================================================== */}
-      <Route
-        path="/teacher/*"
-        element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <DashboardShell initialTab="teacher_dashboard" />
-          </ProtectedRoute>
-        }
-      />
+        {/* =====================================================================
+            Protected Faculty / Teacher Portal (/teacher)
+            ===================================================================== */}
+        <Route
+          path="/teacher/*"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <DashboardShell initialTab="teacher_dashboard" />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* =====================================================================
-          Protected Administrator Console (/admin)
-          ===================================================================== */}
-      <Route
-        path="/admin/*"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <DashboardShell initialTab="admin_dashboard" />
-          </ProtectedRoute>
-        }
-      />
+        {/* =====================================================================
+            Protected Administrator Console (/admin)
+            ===================================================================== */}
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardShell initialTab="admin_dashboard" />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* =====================================================================
-          Fallback: Redirect unknown paths to public landing page
-          ===================================================================== */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* =====================================================================
+            Fallback: Redirect unknown paths to public landing page
+            ===================================================================== */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 

@@ -16,7 +16,8 @@ import {
   Users, 
   Layers,
   Sparkles,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, onSelectTab, onOpenAuthModal }) => {
